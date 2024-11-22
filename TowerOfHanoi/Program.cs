@@ -12,7 +12,7 @@
             {
                 Tower = 0;
                 HeightIndex = heightIndex;
-                Size = diskSize;
+                Size = diskSize * 2;
             }
         }
         static void Main(string[] args)
@@ -34,7 +34,9 @@
             Towers[Disk2.Tower].Push(Disk2);
             Towers[Disk3.Tower].Push(Disk3);
 
-            Console.WriteLine(Towers[0].TryPeek(out _));
+            Disk3 = moveDisk(Towers, Disk3, 1);
+
+            // Console.WriteLine((Towers[Disk3.Tower].Peek().Size == Disk3.Size));
         }
 
         static bool isEmpty(Stack<Disk> stack)
@@ -52,20 +54,69 @@
             if (canPeek(Towers[towerIndex]) && !isEmpty(Towers[towerIndex]))
             {
                 Disk currentDisk = Towers[towerIndex].Peek();
+                Disk topMostDisk = Towers[disk.Tower].Peek();
 
-                if (currentDisk.Size > disk.Size) return false;
+                if (topMostDisk.Size != disk.Size)
+                {
+                    Console.WriteLine("Trying to move a disk that isnt at the top of the tower.");
+                    return false; // disk you are moving has to be the topmost disk
+                }
+                if (currentDisk.Size > disk.Size)
+                {
+                    Console.WriteLine("Trying to move the disk to a tower with a smaller disk on it.");
+                    return false; // size check
+                }
+                if (disk.Tower == towerIndex)
+                {
+                    Console.WriteLine("Trying to move a disk to the tower that its already on.");
+                    return false; // cant move to same tower
+                }
 
                 return true;
 
             } else if (isEmpty(Towers[towerIndex]))
-                return true;
+            {
+                Disk topMostDisk = Towers[disk.Tower].Peek();
+                return topMostDisk.Size == disk.Size;
+            }
 
             return false;
         }
 
-        static void moveDisk(List<Stack<Disk>> Towers, Disk disk, int towerIndex)
+        static Disk moveDisk(List<Stack<Disk>> Towers, Disk disk, int towerIndex)
         {
-            Towers[towerIndex].Push(disk);
+            if (isValid(Towers, disk, towerIndex))
+            {
+                Console.WriteLine("Valid Move!");
+
+                Disk newDisk = new Disk(disk.Size / 2, disk.HeightIndex);
+                newDisk.Tower = towerIndex;
+
+                Towers[disk.Tower].Pop();
+                Towers[towerIndex].Push( newDisk ); // take out the current disk, and put it in the new tower
+
+                Console.WriteLine($"Disk {newDisk.Size / 2} moved to tower {newDisk.Tower}!");
+
+                displayHanoi(Towers);
+                return newDisk;
+            }
+            Console.WriteLine("Invalid move!");
+            return disk;
+        }
+
+        static void displayHanoi(List<Stack<Disk>> Towers)
+        {
+            foreach (Stack<Disk> Tower in Towers)
+            {
+                Console.WriteLine();
+                foreach (Disk disk in Tower)
+                {
+                    string diskString = "<" + new string('=', disk.Size) + ">";
+                    diskString = diskString.Insert(diskString.Length / 2, "|");
+                    diskString = new string(' ', disk.Size) + diskString;
+                    Console.WriteLine(diskString);
+                }
+            }
         }
 
     }
