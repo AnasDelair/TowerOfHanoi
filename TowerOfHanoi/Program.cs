@@ -1,16 +1,21 @@
-﻿namespace TowerOfHanoi
+namespace TowerOfHanoi
 {
     internal class Program
     {
         public static class Game
         {
             public static int moves = 0;
-            public static int gameEnded = 0;
-            public const int TowerNumber = 3;
-            public const int DiskNumber = 3;
-            public const int startingTower = 0;
-            public const int maxSize = DiskNumber * 2;
-            public const int maxHeight = DiskNumber + 1;
+            public static bool gameEnded = false;
+
+            public static int TowerNumber = 3;
+            public static int DiskNumber = 3;
+            public static int startingTower = 0;
+
+            public static int maxSize = DiskNumber * 2;
+            public static int maxHeight = DiskNumber + 1;
+
+            public static int smallestDisk = 1;
+            public static int biggestDisk = DiskNumber;
         }
 
         struct Disk
@@ -29,6 +34,14 @@
 
         static void Main(string[] args)
         {
+            Console.WriteLine("How many towers do you want to play with?");
+
+            Game.TowerNumber = Convert.ToInt32(Console.ReadLine());
+
+            Console.WriteLine("How many disks do you want to play with?");
+
+            Game.DiskNumber = Convert.ToInt32(Console.ReadLine());
+
             List<Stack<Disk>> Towers = new List<Stack<Disk>>();
 
             for (int i = 1; i <= Game.TowerNumber; i++)
@@ -40,13 +53,24 @@
             {
                 Towers[Game.startingTower].Push(new Disk((Game.DiskNumber + 1) - i, i));
             }
+            
+            displayHanoi(Towers);
 
-            solveHanoi(Towers);
+            while (!Game.gameEnded)
+            {
+                Console.WriteLine($"Which disk would you like to move? smallest: {Game.smallestDisk} till largest: {Game.biggestDisk}");
+                int diskToMove = Convert.ToInt32(Console.ReadLine());
+
+                Console.WriteLine($"Which Tower would you like to move to? smallest: 1 till largest: {Game.TowerNumber}");
+                int towerToMoveTo = Convert.ToInt32(Console.ReadLine()) - 1;
+
+                moveDisk(Towers, diskToMove, towerToMoveTo);
+            }
         }
 
         static bool isEmpty(Stack<Disk> stack)
-        { 
-            return stack.Count == 0; 
+        {
+            return stack.Count == 0;
         }
 
         static bool canPeek(Stack<Disk> Tower)
@@ -56,6 +80,12 @@
 
         static bool isValid(List<Stack<Disk>> Towers, Disk disk, int towerIndex)
         {
+            if (towerIndex >= Game.TowerNumber)
+            {
+                Console.WriteLine($"Tower {towerIndex} doesnt exist!");
+                return false;
+            }
+
             if (canPeek(Towers[towerIndex]) && !isEmpty(Towers[towerIndex]))
             {
                 Disk currentDisk = Towers[towerIndex].Peek();
@@ -79,7 +109,8 @@
 
                 return true;
 
-            } else if (isEmpty(Towers[towerIndex]))
+            }
+            else if (isEmpty(Towers[towerIndex]))
             {
                 Disk topMostDisk = Towers[disk.Tower].Peek();
                 return topMostDisk.Size == disk.Size;
@@ -122,12 +153,14 @@
                 newDisk.Tower = towerIndex;
 
                 Towers[disk.Tower].Pop();
-                Towers[towerIndex].Push( newDisk ); // take out the current disk, and put it in the new tower
+                Towers[towerIndex].Push(newDisk); // take out the current disk, and put it in the new tower
 
                 Console.WriteLine($"Disk {newDisk.Size / 2} moved to tower {newDisk.Tower}!");
                 disk = newDisk;
 
                 displayHanoi(Towers);
+
+                checkGameState(Towers);
                 return;
             }
             Console.WriteLine("Invalid move!");
@@ -156,7 +189,8 @@
                     }
                     Console.WriteLine(new string('-', maxSize * 2 + maxSize / 2));
                     Console.WriteLine();
-                } else
+                }
+                else
                 {
                     for (int i = 0; i <= maxHeight; i++)
                     {
@@ -168,15 +202,38 @@
             }
         }
 
+        static void checkGameState(List<Stack<Disk>> Towers)
+        {
+            foreach (Stack<Disk> Tower in Towers)
+            {
+                if (Tower.Count == Game.DiskNumber)
+                {
+                    Game.gameEnded = true;
+                    Console.WriteLine("You Won!");
+                }
+            }
+        }
+
+        /*
         static void solveHanoi(List<Stack<Disk>> Towers)
         {
             if (Game.DiskNumber % 2 == 1)
             {
                 Console.WriteLine("Solving Hanoi Even Method");
-                if Game.moves
-                moveDisk(Towers, 1, 2);
+
+                int storageTower = 1;
+                int targetTower = Game.TowerNumber - 1;
+                int currentDisk = Game.smallestDisk;
+
+                for (int i = 1; i <= 7; i++)
+                {
+                    moveDisk(Towers, currentDisk, storageTower);
+                    currentDisk += 1;
+                    storageTower += 1;
+                }
             }
         }
+        */
 
     }
 }
